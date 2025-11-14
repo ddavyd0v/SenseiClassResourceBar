@@ -19,9 +19,10 @@ local commonDefaults = {
     scale = 1,
     width = 200,
     height = 15,
-    smoothProgress = false,
+    smoothProgress = true,
     hideOutOfCombat = false,
     showText = true,
+    showFragmentedPowerBarText = false,
     font = "Fonts\\FRIZQT__.TTF",
     fontSize = 12,
     fontOutline = "OUTLINE",
@@ -112,6 +113,13 @@ local tickedPowerTypes = {
     [Enum.PowerType.SoulShards] = true,
 }
 
+-- Power types that are fragmented (multiple independent segments)
+local fragmentedPowerTypes = {
+    --[Enum.PowerType.Essence] = true,
+    [Enum.PowerType.Runes] = true,
+    --[Enum.PowerType.SoulShards] = true,
+}
+
 ------------------------------------------------------------
 -- BAR CONFIGURATION
 ------------------------------------------------------------
@@ -162,6 +170,8 @@ barConfigs.primary = {
         return classResources[playerClass]
     end,
     getValue = function(resource, config, data)
+        if not resource then return nil, nil, nil, nil end
+
         local current = UnitPower("player", resource)
         local max = UnitPowerMax("player", resource)
         if max <= 0 then return nil, nil, nil, nil end
@@ -279,7 +289,7 @@ barConfigs.secondary = {
         return secondaryResources[class]
     end,
     getValue = function(resource, config, data)
-        if not resource then return nil, nil end
+        if not resource then return nil, nil, nil, nil end
 
         -- Handle Brewmaster Stagger separately
         if resource == "STAGGER" then
@@ -288,17 +298,20 @@ barConfigs.secondary = {
             return maxHealth, stagger, stagger, "number"
         end
 
-        -- Handle Death Knight Runes separately
+        -- Handle Death Knight Runes with independent reload times
         if resource == Enum.PowerType.Runes then
+            local readyCount = 0
             local totalRunes = UnitPowerMax("player", resource)
-            local readyRunes = 0
-            for i = 1, UnitPowerMax("player", resource) do
+            if totalRunes <= 0 then return nil, nil, nil, nil end
+            
+            for i = 1, totalRunes do
                 local runeReady = select(3, GetRuneCooldown(i))
                 if runeReady then
-                    readyRunes = readyRunes + 1
+                    readyCount = readyCount + 1
                 end
             end
-            return totalRunes, readyRunes, readyRunes, "number"
+            
+            return totalRunes, readyCount, readyCount, "number"
         end
 
         -- Regular secondary resource types
@@ -311,8 +324,23 @@ barConfigs.secondary = {
     lemSettings = function(dbName, defaults, frame)
         return {
             {
+                order = 41,
+                name = "Show Resource Charge Timer (e.g. Runes)",
+                kind = LEM.SettingType.Checkbox,
+                default = defaults.showFragmentedPowerBarText,
+                get = function(layoutName)
+                    local data = SenseiClassResourceBarDB[dbName][layoutName]
+                    return data and data.showFragmentedPowerBarText ~= false
+                end,
+                set = function(layoutName, value)
+                    SenseiClassResourceBarDB[dbName][layoutName] = SenseiClassResourceBarDB[dbName][layoutName] or CopyTable(defaults)
+                    SenseiClassResourceBarDB[dbName][layoutName].showFragmentedPowerBarText = value
+                    frame:ApplyTextVisibilitySettings(layoutName)
+                end,
+            },
+            {
                 order = 42,
-                name = "Show Ticks when available",
+                name = "Show Ticks When Available",
                 kind = LEM.SettingType.Checkbox,
                 default = defaults.showTicks,
                 get = function(layoutName)
@@ -406,7 +434,183 @@ local function CreateBarInstance(config, parent)
     frame.updateInterval = 0.05
     frame.elapsed = 0
 
+    -- Fragmented powers (Runes, Essences, Soul Shards) specific visual elements
+    frame.fragmentedPowerBars = {}
+    frame.fragmentedPowerBarTexts = {}
+
     -- METHODS
+    function frame:CreateFragmentedPowerBars(layoutName)
+        layoutName = layoutName or LEM.GetActiveLayoutName() or "Default"
+        local data = SenseiClassResourceBarDB[self.config.dbName][layoutName]
+        if not data then return end
+
+        local defaults = CopyTable(commonDefaults)
+        for k, v in pairs(self.config.defaultValues or {}) do
+            defaults[k] = v
+        end
+
+        local resource = self.config.getResource()
+        if not resource then return end
+        for i = 1, UnitPowerMax("player", resource) or 0 do
+            if not self.fragmentedPowerBars[i] then
+                -- Create a small status bar for each rune (behind main bar, in front of background)
+                local bar = CreateFrame("StatusBar", nil, self)
+
+                local fgStyleName = data.foregroundStyle or defaults.foregroundStyle
+                local fgTexture = foregroundStyles[fgStyleName]
+                
+                if fgTexture then
+                    bar:SetStatusBarTexture(fgTexture)
+                end
+                bar:GetStatusBarTexture():AddMaskTexture(self.mask)
+                bar:SetOrientation("HORIZONTAL")
+                bar:SetFrameLevel(1)
+                self.fragmentedPowerBars[i] = bar
+                
+                -- Create text for reload time display
+                local text = bar:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+                text:SetPoint("CENTER", bar, "CENTER", 0, 0)
+                text:SetJustifyH("CENTER")
+                text:SetText("")
+                self.fragmentedPowerBarTexts[i] = text
+            end
+        end
+    end
+
+    function frame:UpdateFragmentedPowerVisuals(layoutName)
+        layoutName = layoutName or LEM.GetActiveLayoutName() or "Default"
+        local data = SenseiClassResourceBarDB[self.config.dbName][layoutName]
+        if not data then return end
+
+        local defaults = CopyTable(commonDefaults)
+        for k, v in pairs(self.config.defaultValues or {}) do
+            defaults[k] = v
+        end
+        
+        local resource = self.config.getResource()
+        if not resource then return end
+        local maxPower = UnitPowerMax("player", resource)
+        if maxPower <= 0 then return end
+
+        local barWidth = self:GetWidth()
+        local barHeight = self:GetHeight()
+        local fragmentedBarWidth = barWidth / maxPower
+        
+        -- Hide the main status bar fill (we display bars representing one (1) unit of resource each)
+        self.statusBar:SetAlpha(0)
+
+        local color = self:GetResourceColor(resource)
+
+        if resource == Enum.PowerType.Runes then
+            -- Collect rune states: ready and recharging
+            local readyList = {}
+            local cdList = {}
+            local now = GetTime()
+            for i = 1, maxPower do
+                local start, duration, runeReady = GetRuneCooldown(i)
+                if runeReady then
+                    table.insert(readyList, { index = i })
+                else
+                    if start and duration and duration > 0 then
+                        local elapsed = now - start
+                        local remaining = math.max(0, duration - elapsed)
+                        local frac = math.max(0, math.min(1, elapsed / duration))
+                        table.insert(cdList, { index = i, remaining = remaining, frac = frac })
+                    else
+                        table.insert(cdList, { index = i, remaining = math.huge, frac = 0 })
+                    end
+                end
+            end
+
+            -- Sort cdList by ascending remaining time (least remaining on the left of the CD group)
+            table.sort(cdList, function(a, b)
+                return a.remaining < b.remaining
+            end)
+
+            -- Build final display order: ready runes first (left), then CD runes sorted by remaining
+            local displayOrder = {}
+            local readyLookup = {}
+            local cdLookup = {}
+            for _, v in ipairs(readyList) do
+                table.insert(displayOrder, v.index)
+                readyLookup[v.index] = true
+            end
+            for _, v in ipairs(cdList) do
+                table.insert(displayOrder, v.index)
+                cdLookup[v.index] = v
+            end
+
+            for pos = 1, #displayOrder do
+                local runeIndex = displayOrder[pos]
+                local runeFrame = self.fragmentedPowerBars[runeIndex]
+                local runeText = self.fragmentedPowerBarTexts[runeIndex]
+
+                if runeFrame then
+                    runeFrame:SetSize(fragmentedBarWidth, barHeight)
+                    runeFrame:ClearAllPoints()
+                    runeFrame:SetPoint("LEFT", self, "LEFT", (pos - 1) * fragmentedBarWidth, 0)
+
+                    if readyLookup[runeIndex] then
+                        runeFrame:SetMinMaxValues(0, 1)
+                        runeFrame:SetValue(1)
+                        runeText:SetText("")
+                        runeFrame:SetStatusBarColor(color.r, color.g, color.b)
+                    else
+                        local cdInfo = cdLookup[runeIndex]
+                        if cdInfo then
+                            runeFrame:SetMinMaxValues(0, 1)
+                            runeFrame:SetValue(cdInfo.frac)
+                            runeText:SetText(string.format("%.1f", math.max(0, cdInfo.remaining)))
+                            runeFrame:SetStatusBarColor(color.r * 0.5, color.g * 0.5, color.b * 0.5)
+                        else
+                            runeFrame:SetMinMaxValues(0, 1)
+                            runeFrame:SetValue(0)
+                            runeText:SetText("")
+                            runeFrame:SetStatusBarColor(color.r * 0.5, color.g * 0.5, color.b * 0.5)
+                        end
+                    end
+
+                    runeFrame:Show()
+                    self:ApplyFontSettings(layoutName)
+                end
+            end
+
+            -- Hide any extra rune frames beyond current maxPower
+            for i = maxPower + 1, #self.fragmentedPowerBars do
+                if self.fragmentedPowerBars[i] then
+                    self.fragmentedPowerBars[i]:Hide()
+                    if self.fragmentedPowerBarTexts[i] then
+                        self.fragmentedPowerBarTexts[i]:SetText("")
+                    end
+                end
+            end
+        end
+    end
+
+    function frame:GetResourceColor(resource)
+        local color = nil
+
+        if resource == "STAGGER" then
+            color = { r = 0.5216, g = 1.0, b = 0.5216 }
+        elseif resource == Enum.PowerType.Runes then
+            local spec = GetSpecialization()
+            local specID = GetSpecializationInfo(spec)
+
+            if specID == 250 then -- Blood
+                color = { r = 1, g = 0.2, b = 0.3 }
+            elseif specID == 251 then -- Frost
+                color = { r = 0.0, g = 0.6, b = 1.0 }
+            elseif specID == 252 then -- Unholy
+                color = { r = 0.1, g = 1.0, b = 0.1 }
+            end
+            -- Else fallback on Blizzard Runes color, grey...
+        elseif resource == Enum.PowerType.Essence then
+            color = { r = 0.0, g = 0.55, b = 0.50 }
+        end
+
+        return color or PowerBarColor[resource] or PowerBarColor["MANA"]
+    end
+
     function frame:UpdateDisplay(layoutName)
         layoutName = layoutName or LEM.GetActiveLayoutName() or "Default"
         local data = SenseiClassResourceBarDB[self.config.dbName][layoutName]
@@ -443,24 +647,12 @@ local function CreateBarInstance(config, parent)
             self.textValue:SetText(AbbreviateNumbers(displayValue))
         end
 
-        -- Color
-        local color = PowerBarColor[resource] or PowerBarColor["MANA"]
-        if resource == "STAGGER" then
-            color = { r = 0.5216, g = 1.0, b = 0.5216 }
-        elseif resource == Enum.PowerType.Runes then
-            local spec = GetSpecialization()
-            local specID = GetSpecializationInfo(spec)
-
-            if specID == 250 then -- Blood
-                color = { r = 1, g = 0.2, b = 0.3 }
-            elseif specID == 251 then -- Frost
-                color = { r = 0.0, g = 0.6, b = 1.0 }
-            elseif specID == 252 then -- Unholy
-                color = { r = 0.1, g = 1.0, b = 0.1 }
-            end
-            -- Else fallback on Blizzard Runes color, grey...
-        end
+        local color = self:GetResourceColor(resource)
         self.statusBar:SetStatusBarColor(color.r, color.g, color.b)
+
+        if fragmentedPowerTypes[resource] then
+            self:UpdateFragmentedPowerVisuals(layoutName)
+        end
     end
 
     function frame:ApplyFontSettings(layoutName)
@@ -480,7 +672,13 @@ local function CreateBarInstance(config, parent)
         self.textValue:SetFont(font, size, outline)
         self.textValue:SetShadowColor(0, 0, 0, 0.8)
         self.textValue:SetShadowOffset(1, -1)
-        
+
+        for _, fragmentedPowerBarText in ipairs(self.fragmentedPowerBarTexts) do
+            fragmentedPowerBarText:SetFont(font, math.max(6, size - 2), outline)
+            fragmentedPowerBarText:SetShadowColor(0, 0, 0, 0.8)
+            fragmentedPowerBarText:SetShadowOffset(1, -1)
+        end
+
         -- Text alignment: LEFT, CENTER, RIGHT
         local align = data.textAlign or defaults.textAlign or "CENTER"
         self.textValue:SetJustifyH(align)
@@ -571,6 +769,11 @@ local function CreateBarInstance(config, parent)
             t:SetPoint("LEFT", self.statusBar, "LEFT", x - 0.5, 0)
             t:Show()
         end
+
+        -- Hide any extra ticks
+        for i = needed + 1, #self.ticks do
+            self.ticks[i]:Hide()
+        end
     end
 
     function frame:ApplyBackgroundSettings(layoutName)
@@ -611,6 +814,10 @@ local function CreateBarInstance(config, parent)
         
         if fgTexture then
             frame.statusBar:SetStatusBarTexture(fgTexture)
+
+            for _, fragmentedPowerBar in ipairs(self.fragmentedPowerBars) do
+                fragmentedPowerBar:SetStatusBarTexture(fgTexture)
+            end
         end
     end
 
@@ -648,6 +855,10 @@ local function CreateBarInstance(config, parent)
         if not data then return end
 
         self.textFrame:SetShown(data.showText ~= false)
+
+        for _, fragmentedPowerBarText in ipairs(self.fragmentedPowerBarTexts) do
+            fragmentedPowerBarText:SetShown(data.showFragmentedPowerBarText ~= false)
+        end
     end
 
     function frame:EnableSmoothProgress()
@@ -701,6 +912,12 @@ local function CreateBarInstance(config, parent)
             self:EnableSmoothProgress()
         else
             self:DisableSmoothProgress()
+        end
+        
+        local resource = self.config.getResource()
+        if fragmentedPowerTypes[resource] then
+            self:CreateFragmentedPowerBars(layoutName)
+            self:UpdateFragmentedPowerVisuals(layoutName)
         end
     end
 
