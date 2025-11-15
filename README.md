@@ -75,11 +75,16 @@ Each bar (Primary & Secondary) has its own configuration:
 *   💧 Optional **Mana as percentage**
 *   ⏱ Rune-specific cooldown text for Death Knights
 
+### **Hide default Blizzard UI**
+
+*   Option to hide Blizzard Player Frame
+*   Option to hide Blizzard secondary resource bars (Combo Points, Essence, Holy Power, Arcane Charges, etc.)
+
 ### **Advanced**
 
 *   🔗 Width syncing with the Cooldown Manager :
-*   Essential Cooldowns
-*   Utility Cooldowns
+    * Essential Cooldowns
+    * Utility Cooldowns
 
 ***
 

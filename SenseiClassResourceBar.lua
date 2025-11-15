@@ -1072,6 +1072,7 @@ local function CreateBarInstance(config, parent)
             DruidComboPointBarFrame,
             EssencePlayerFrame,
             MageArcaneChargesFrame,
+            MonkHarmonyBarFrame,
             PaladinPowerBarFrame,
             RogueComboPointBarFrame,
             RuneFrame,
