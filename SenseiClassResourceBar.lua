@@ -1,5 +1,7 @@
 local addonName, addonTable = ...
 
+local buildVersion = select(4, GetBuildInfo())
+
 ------------------------------------------------------------
 -- LIBSHAREDMEDIA INTEGRATION
 ------------------------------------------------------------
@@ -241,7 +243,12 @@ barConfigs.primary = {
         if max <= 0 then return nil, nil, nil, nil end
 
         if data.showManaAsPercent and resource == Enum.PowerType.Mana then
-            return max, current, UnitPowerPercent("player", resource, false, true), "percent"
+            -- UnitPowerPercent do not exists prior to Midnight
+            if (buildVersion or 0) < 120000 then
+                return max, current, math.floor((current / max) * 100 + 0.5), "percent"
+            else
+                return max, current, UnitPowerPercent("player", resource, false, true), "percent"
+            end
         else
             return max, current, current, "number"
         end
