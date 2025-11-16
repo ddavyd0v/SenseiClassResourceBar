@@ -1085,7 +1085,8 @@ local function CreateBarInstance(config, parent)
         local data = SenseiClassResourceBarDB[self.config.dbName][layoutName]
         if not data then return end
 
-        if data.hideBlizzardSecondaryResourceUi == nil then return end
+        -- InCombatLockdown() means protected frames so we cannot touch it
+        if data.hideBlizzardSecondaryResourceUi == nil or InCombatLockdown() then return end
         
         local playerClass = select(2, UnitClass("player"))
         local blizzardResourceFrames = {
@@ -1099,10 +1100,15 @@ local function CreateBarInstance(config, parent)
             ["WARLOCK"] = WarlockPowerFrame,
         }
 
-        for class, f in ipairs(blizzardResourceFrames) do
+        for class, f in pairs(blizzardResourceFrames) do
+            print(playerClass, f)
             if f and playerClass == class then
                 if data.hideBlizzardSecondaryResourceUi then
-                    f:Hide()
+                    if LEM:IsInEditMode() then
+                        f:Show()
+                    else 
+                        f:Hide()
+                    end
                 else
                     f:Show()
                 end
