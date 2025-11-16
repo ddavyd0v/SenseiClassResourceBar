@@ -45,8 +45,9 @@ local function InitLSM()
     
     LSM:Register(LSM.MediaType.STATUSBAR, "SCRB FG Fade Left", [[Interface\AddOns\SenseiClassResourceBar\Textures\BarForegrounds\fade-left.png]])
     LSM:Register(LSM.MediaType.STATUSBAR, "SCRB FG Fade Bottom", [[Interface\AddOns\SenseiClassResourceBar\Textures\BarForegrounds\fade-bottom.png]])
-    LSM:Register(LSM.MediaType.STATUSBAR, "SCRB FB Fade Top", [[Interface\AddOns\SenseiClassResourceBar\Textures\BarForegrounds\fade-top.png]])
-    LSM:Register(LSM.MediaType.STATUSBAR, "SCRB FB Solid", [[Interface\AddOns\SenseiClassResourceBar\Textures\BarForegrounds\solid.png]])
+    LSM:Register(LSM.MediaType.STATUSBAR, "SCRB FG Fade Top", [[Interface\AddOns\SenseiClassResourceBar\Textures\BarForegrounds\fade-top.png]])
+    LSM:Register(LSM.MediaType.STATUSBAR, "SCRB FG Solid", [[Interface\AddOns\SenseiClassResourceBar\Textures\BarForegrounds\solid.png]])
+    LSM:Register(LSM.MediaType.STATUSBAR, "None", [[Interface\AddOns\SenseiClassResourceBar\Textures\BarForegrounds\transparent.png]])
 
     LSM:Register(LSM.MediaType.BORDER, "SCRB Border Thin", [[Interface\AddOns\SenseiClassResourceBar\Textures\BarBorders\thin.png]])
     LSM:Register(LSM.MediaType.BORDER, "SCRB Border Bold", [[Interface\AddOns\SenseiClassResourceBar\Textures\BarBorders\bold.png]])
@@ -131,21 +132,25 @@ local availableTextAlignmentStyles = {
 -- Available mask and border styles
 local maskAndBorderStyles = {
     ["Thin"] = {
-        mask = [[Interface\AddOns\SenseiClassResourceBar\Textures\BarBorders\thin-mask.png]],
+        mask = [[Interface\AddOns\SenseiClassResourceBar\Textures\white.png]],
         border = LSM:Fetch(LSM.MediaType.BORDER, "SCRB Border Thin"),
     },
     ["Bold"] = {
-        mask = [[Interface\AddOns\SenseiClassResourceBar\Textures\BarBorders\bold-mask.png]],
+        mask = [[Interface\AddOns\SenseiClassResourceBar\Textures\white.png]],
         border = LSM:Fetch(LSM.MediaType.BORDER, "SCRB Border Bold"),
     },
     ["Slight"] = {
-        mask = [[Interface\AddOns\SenseiClassResourceBar\Textures\BarBorders\slight-mask.png]],
+        mask = [[Interface\AddOns\SenseiClassResourceBar\Textures\white.png]],
         border = LSM:Fetch(LSM.MediaType.BORDER, "SCRB Border Slight"),
     },
     ["Blizzard Classic"] = {
         mask = [[Interface\AddOns\SenseiClassResourceBar\Textures\BarBorders\blizzard-classic-mask.png]],
         border = LSM:Fetch(LSM.MediaType.BORDER, "SCRB Border Blizzard Classic"),
     },
+    ["None"] = {
+        mask = [[Interface\AddOns\SenseiClassResourceBar\Textures\white.png]],
+        border = [[]],
+    }
     -- Add more styles here as needed
     -- ["style-name"] = {
     --     mask = "path/to/mask.png",
@@ -684,7 +689,8 @@ local function CreateBarInstance(config, parent)
         -- Hide the main status bar fill (we display bars representing one (1) unit of resource each)
         self.statusBar:SetAlpha(0)
 
-        local color = self.config.getBarColor(resource, frame)
+        local r, g, b = self.statusBar:GetStatusBarColor()
+        local color = { r = r, g = g, b = b}
 
         if resource == Enum.PowerType.Runes then
             -- Collect rune states: ready and recharging
