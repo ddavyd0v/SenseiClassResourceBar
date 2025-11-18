@@ -567,7 +567,7 @@ barConfigs.secondary = {
             },
             {
                 order = 63,
-                name = "Use Resource Foreground",
+                name = "Use Resource Foreground And Color",
                 kind = LEM.SettingType.Checkbox,
                 default = defaults.useResourceAtlas,
                 get = function(layoutName)
@@ -591,7 +591,7 @@ barConfigs.secondary = {
 -- TERTIARY RESOURCE BAR
 barConfigs.tertiary = {
     dbName = "tertiaryResourceBarDB",
-    editModeName = "Ebon Might Resource Bar",
+    editModeName = "Ebon Might Bar",
     frameName = "TertiaryResourceBar",
     frameLevel = 1,
     defaultValues = {
@@ -683,7 +683,7 @@ barConfigs.tertiary = {
         return {
             {
                 order = 63,
-                name = "Use Resource Foreground",
+                name = "Use Resource Foreground And Color",
                 kind = LEM.SettingType.Checkbox,
                 default = defaults.useResourceAtlas,
                 get = function(layoutName)
