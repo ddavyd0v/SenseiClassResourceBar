@@ -1,4 +1,4 @@
-local MINOR = 10.5
+local MINOR = 11
 local lib = LibStub:NewLibrary('LibEditMode', MINOR)
 if not lib then
 	-- this or a newer version is already loaded
