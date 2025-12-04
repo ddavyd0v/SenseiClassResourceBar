@@ -453,10 +453,10 @@ function BarMixin:ApplyLayout(layoutName, force)
         width = data.width or defaults.width
     end
     local height = data.height or defaults.height
-
     self.Frame:SetSize(max(LEM:IsInEditMode() and 2 or 1, width * scale), max(LEM:IsInEditMode() and 2 or 1, height * scale))
     self.Frame:ClearAllPoints()
-    self.Frame:SetPoint(point, UIParent, point, x, y)
+    local uiWidth, uiHeight = UIParent:GetWidth() / 2, UIParent:GetHeight() / 2
+    self.Frame:SetPoint(point, UIParent, point, addonTable.clamp(x, uiWidth * -1, uiWidth), addonTable.clamp(y, uiHeight * -1, uiHeight))
 
     self:ApplyFontSettings(layoutName)
     self:ApplyFillDirectionSettings(layoutName)

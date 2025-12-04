@@ -184,3 +184,13 @@ addonTable.fragmentedPowerTypes = {
     [Enum.PowerType.Essence] = true,
     [Enum.PowerType.Runes] = true,
 }
+
+addonTable.clamp = function(x, min, max)
+    if x < min then
+        return min
+    elseif x > max then
+        return max
+    else
+        return x
+    end
+end
