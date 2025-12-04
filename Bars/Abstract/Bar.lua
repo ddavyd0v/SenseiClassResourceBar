@@ -454,7 +454,7 @@ function BarMixin:ApplyLayout(layoutName, force)
     end
     local height = data.height or defaults.height
 
-    self.Frame:SetSize(max(1, width * scale), max(1, height * scale))
+    self.Frame:SetSize(max(LEM:IsInEditMode() and 2 or 1, width * scale), max(LEM:IsInEditMode() and 2 or 1, height * scale))
     self.Frame:ClearAllPoints()
     self.Frame:SetPoint(point, UIParent, point, x, y)
 
