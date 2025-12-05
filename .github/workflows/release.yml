@@ -31,12 +31,17 @@ jobs:
       - name: Download release asset
         run: |
           mkdir -p Libs
-          curl -L "${{ steps.release.outputs.asset_url }}" -o release.zip
+          curl -L "${{ steps.release.outputs.asset_url }}" -o LibEQOL.zip
 
-      - name: Extract into Libs/
+      - name: Extract LibEQOL into temp folder
         run: |
-          unzip -o release.zip -d Libs
-          rm release.zip
+          mkdir -p PkgMeta-LibEQOL_TMP
+          unzip -o LibEQOL.zip -d PkgMeta-LibEQOL_TMP
+          rm LibEQOL.zip
+          mkdir -p PkgMeta-LibEQOL
+          shopt -s dotglob
+          mv PkgMeta-LibEQOL_TMP/* PkgMeta-LibEQOL/
+          rm -r PkgMeta-LibEQOL_TMP
 
       - name: Create Package and release
         uses: BigWigsMods/packager@v2
