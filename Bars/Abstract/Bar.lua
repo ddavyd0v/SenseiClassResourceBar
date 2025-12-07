@@ -165,16 +165,6 @@ function BarMixin:GetBarColor(_)
     return { r = 1, g = 1, b = 1 }
 end
 
----@return table { r = int, g = int, b = int }
-function BarMixin:GetResourceNumberColor()
-    return { r = 1, b = 1, g = 1}
-end
-
----@return table { r = int, g = int, b = int }
-function BarMixin:GetResourceChargeTimerColor()
-    return { r = 1, b = 1, g = 1}
-end
-
 ---@return string|number|nil The resource, can be anything as long as you handle it in BarMixin:GetResourceValue
 function BarMixin:GetResource()
     return nil
@@ -494,15 +484,15 @@ function BarMixin:ApplyFontSettings(layoutName)
     self.TextValue:SetShadowColor(0, 0, 0, 0.8)
     self.TextValue:SetShadowOffset(1, -1)
 
-    local color = self:GetResourceNumberColor()
-    self.TextValue:SetTextColor(color.r, color.g, color.b)
+    local color = data.textColor or defaults.textColor
+    self.TextValue:SetTextColor(color.r or 1, color.g or 1, color.b or 1, color.a or 1)
 
-    color = self:GetResourceChargeTimerColor()
+    color = data.fragmentedPowerBarTextColor or defaults.fragmentedPowerBarTextColor
     for _, fragmentedPowerBarText in ipairs(self.FragmentedPowerBarTexts) do
         fragmentedPowerBarText:SetFont(font, math.max(6, size - 2) * scale, outline)
         fragmentedPowerBarText:SetShadowColor(0, 0, 0, 0.8)
         fragmentedPowerBarText:SetShadowOffset(1, -1)
-        fragmentedPowerBarText:SetTextColor(color.r, color.g, color.b)
+        fragmentedPowerBarText:SetTextColor(color.r or 1, color.g or 1, color.b or 1, color.a or 1)
     end
 
     -- Text alignment: LEFT, CENTER, RIGHT, TOP, BOTTOM

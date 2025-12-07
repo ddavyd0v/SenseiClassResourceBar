@@ -5,14 +5,6 @@ local LEM = addonTable.LEM or LibStub("LibEQOLEditMode-1.0")
 local TertiaryResourceBarMixin = Mixin({}, addonTable.PowerBarMixin)
 local buildVersion = select(4, GetBuildInfo())
 
-function TertiaryResourceBarMixin:GetResourceNumberColor()
-    return addonTable:GetOverrideTextColor(addonTable.RegistereredBar.TertiaryResourceBar.frameName, addonTable.TextId.ResourceNumber) or { r = 1, b = 1, g = 1}
-end
-
-function TertiaryResourceBarMixin:GetResourceChargeTimerColor()
-    return addonTable:GetOverrideTextColor(addonTable.RegistereredBar.TertiaryResourceBar.frameName, addonTable.TextId.ResourceChargerTimer) or { r = 1, b = 1, g = 1}
-end
-
 function TertiaryResourceBarMixin:GetResource()
     local playerClass = select(2, UnitClass("player"))
     local tertiaryResources = {

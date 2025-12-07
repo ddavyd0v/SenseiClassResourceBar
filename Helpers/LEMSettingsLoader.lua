@@ -265,8 +265,9 @@ local function BuildLemSettings(bar, defaults)
             parentId = "Text Settings",
             order = 401,
             name = "Show Resource Number",
-            kind = LEM.SettingType.Checkbox,
+            kind = LEM.SettingType.CheckboxColor,
             default = defaults.showText,
+            colorDefault = defaults.textColor,
             get = function(layoutName)
                 local data = SenseiClassResourceBarDB[config.dbName][layoutName]
                 if data and data.showText ~= nil then
@@ -275,10 +276,19 @@ local function BuildLemSettings(bar, defaults)
                     return defaults.showText
                 end
             end,
+            colorGet = function(layoutName)
+                local data = SenseiClassResourceBarDB[config.dbName][layoutName]
+                return data and data.textColor or defaults.textColor
+            end,
             set = function(layoutName, value)
                 SenseiClassResourceBarDB[config.dbName][layoutName] = SenseiClassResourceBarDB[config.dbName][layoutName] or CopyTable(defaults)
                 SenseiClassResourceBarDB[config.dbName][layoutName].showText = value
                 bar:ApplyTextVisibilitySettings(layoutName)
+            end,
+            colorSet = function(layoutName, value)
+                SenseiClassResourceBarDB[config.dbName][layoutName] = SenseiClassResourceBarDB[config.dbName][layoutName] or CopyTable(defaults)
+                SenseiClassResourceBarDB[config.dbName][layoutName].textColor = value
+                bar:ApplyFontSettings(layoutName)
             end,
         },
         {

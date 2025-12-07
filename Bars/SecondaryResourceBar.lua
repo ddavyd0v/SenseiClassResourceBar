@@ -5,14 +5,6 @@ local LEM = addonTable.LEM or LibStub("LibEQOLEditMode-1.0")
 local SecondaryResourceBarMixin = Mixin({}, addonTable.PowerBarMixin)
 local buildVersion = select(4, GetBuildInfo())
 
-function SecondaryResourceBarMixin:GetResourceNumberColor()
-    return addonTable:GetOverrideTextColor(addonTable.RegistereredBar.SecondaryResourceBar.frameName, addonTable.TextId.ResourceNumber) or { r = 1, b = 1, g = 1}
-end
-
-function SecondaryResourceBarMixin:GetResourceChargeTimerColor()
-    return addonTable:GetOverrideTextColor(addonTable.RegistereredBar.SecondaryResourceBar.frameName, addonTable.TextId.ResourceChargeNumber) or { r = 1, b = 1, g = 1}
-end
-
 function SecondaryResourceBarMixin:GetResource()
     local playerClass = select(2, UnitClass("player"))
     local secondaryResources = {
@@ -243,7 +235,7 @@ addonTable.RegistereredBar.SecondaryResourceBar = {
                 default = defaults.showTicks,
                 colorDefault = defaults.tickColor,
                 get = function(layoutName)
-                    local data = SenseiClassResourceBarDB[dbName][layoutName] or CopyTa
+                    local data = SenseiClassResourceBarDB[dbName][layoutName]
                     if data and data.showTicks ~= nil then
                         return data.showTicks
                     else
@@ -322,8 +314,9 @@ addonTable.RegistereredBar.SecondaryResourceBar = {
                 parentId = "Text Settings",
                 order = 407,
                 name = "Show Resource Charge Timer (e.g. Runes)",
-                kind = LEM.SettingType.Checkbox,
+                kind = LEM.SettingType.CheckboxColor,
                 default = defaults.showFragmentedPowerBarText,
+                colorDefault = defaults.fragmentedPowerBarTextColor,
                 get = function(layoutName)
                     local data = SenseiClassResourceBarDB[dbName][layoutName]
                     if data and data.showFragmentedPowerBarText ~= nil then
@@ -332,10 +325,19 @@ addonTable.RegistereredBar.SecondaryResourceBar = {
                         return defaults.showFragmentedPowerBarText
                     end
                 end,
+                colorGet = function(layoutName)
+                    local data = SenseiClassResourceBarDB[dbName][layoutName]
+                    return data and data.fragmentedPowerBarTextColor or defaults.fragmentedPowerBarTextColor
+                end,
                 set = function(layoutName, value)
                     SenseiClassResourceBarDB[dbName][layoutName] = SenseiClassResourceBarDB[dbName][layoutName] or CopyTable(defaults)
                     SenseiClassResourceBarDB[dbName][layoutName].showFragmentedPowerBarText = value
                     bar:ApplyTextVisibilitySettings(layoutName)
+                end,
+                colorSet = function(layoutName, value)
+                    SenseiClassResourceBarDB[dbName][layoutName] = SenseiClassResourceBarDB[dbName][layoutName] or CopyTable(defaults)
+                    SenseiClassResourceBarDB[dbName][layoutName].fragmentedPowerBarTextColor = value
+                    bar:ApplyFontSettings(layoutName)
                 end,
             },
             {
