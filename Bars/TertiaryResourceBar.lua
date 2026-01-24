@@ -77,8 +77,8 @@ end
 
 addonTable.TertiaryResourceBarMixin = TertiaryResourceBarMixin
 
-addonTable.RegistereredBar = addonTable.RegistereredBar or {}
-addonTable.RegistereredBar.TertiaryResourceBar = {
+addonTable.RegisteredBar = addonTable.RegisteredBar or {}
+addonTable.RegisteredBar.TertiaryResourceBar = {
     mixin = addonTable.TertiaryResourceBarMixin,
     dbName = "tertiaryResourceBarDB",
     editModeName = "Ebon Might Bar",

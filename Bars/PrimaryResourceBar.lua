@@ -100,8 +100,8 @@ end
 
 addonTable.PrimaryResourceBarMixin = PrimaryResourceBarMixin
 
-addonTable.RegistereredBar = addonTable.RegistereredBar or {}
-addonTable.RegistereredBar.PrimaryResourceBar = {
+addonTable.RegisteredBar = addonTable.RegisteredBar or {}
+addonTable.RegisteredBar.PrimaryResourceBar = {
     mixin = addonTable.PrimaryResourceBarMixin,
     dbName = "PrimaryResourceBarDB",
     editModeName = "Primary Resource Bar",

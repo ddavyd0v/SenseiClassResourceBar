@@ -115,8 +115,8 @@ addonTable.exportProfileAsString = function(includeBarSettings, includeAddonSett
     }
 
     if includeBarSettings then
-        local layoutName = LEM.GetActiveLayoutName() or "Default"
-        for _, barSettings in pairs(addonTable.RegistereredBar or {}) do
+        local layoutName = layoutNameToExport or LEM.GetActiveLayoutName() or "Default"
+        for _, barSettings in pairs(addonTable.RegisteredBar or {}) do
             if barSettings
             and barSettings.dbName
             and SenseiClassResourceBarDB

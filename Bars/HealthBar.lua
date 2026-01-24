@@ -79,8 +79,8 @@ end
 
 addonTable.HealthBarMixin = HealthBarMixin
 
-addonTable.RegistereredBar = addonTable.RegistereredBar or {}
-addonTable.RegistereredBar.HealthBar = {
+addonTable.RegisteredBar = addonTable.RegisteredBar or {}
+addonTable.RegisteredBar.HealthBar = {
     mixin = addonTable.HealthBarMixin,
     dbName = "healthBarDB",
     editModeName = "Health Bar",

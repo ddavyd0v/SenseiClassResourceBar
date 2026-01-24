@@ -160,8 +160,8 @@ end
 
 addonTable.SecondaryResourceBarMixin = SecondaryResourceBarMixin
 
-addonTable.RegistereredBar = addonTable.RegistereredBar or {}
-addonTable.RegistereredBar.SecondaryResourceBar = {
+addonTable.RegisteredBar = addonTable.RegisteredBar or {}
+addonTable.RegisteredBar.SecondaryResourceBar = {
     mixin = addonTable.SecondaryResourceBarMixin,
     dbName = "SecondaryResourceBarDB",
     editModeName = "Secondary Resource Bar",
