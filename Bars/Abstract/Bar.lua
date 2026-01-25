@@ -264,32 +264,34 @@ function BarMixin:UpdateDisplay(layoutName, force)
 
     -----------
 
-    local precision = data.textPrecision and math.max(0, string.len(data.textPrecision) - 3) or 0
-    local tagValues = self:GetTagValues(resource, max, current, precision)
+    if data.showText == true then
+        local precision = data.textPrecision and math.max(0, string.len(data.textPrecision) - 3) or 0
+        local tagValues = self:GetTagValues(resource, max, current, precision)
 
-    local textFormat = ""
-    if (data.showManaAsPercent and resource == Enum.PowerType.Mana) or data.textFormat == "Percent" or data.textFormat == "Percent%" then
-        textFormat = "[percent]" .. (data.textFormat == "Percent%" and "%" or "")
-    elseif data.textFormat == nil or data.textFormat == "Current" then
-        textFormat = "[current]"
-    elseif data.textFormat == "Current / Maximum" then
-        textFormat = "[current] / [max]"
-    elseif data.textFormat == "Current - Percent" or data.textFormat == "Current - Percent%" then
-        textFormat = "[current] - [percent]" .. (data.textFormat == "Current - Percent%" and "%" or "")
-    end
-
-    -- Thanks oUF
-    local valuesToDisplay = {}
-    for tag in textFormat:gmatch('%[..-%]+') do
-        if tagValues and tagValues[tag] then
-            table.insert(valuesToDisplay, tagValues[tag]())
-        else
-            table.insert(valuesToDisplay, '')
+        local textFormat = ""
+        if (data.showManaAsPercent and resource == Enum.PowerType.Mana) or data.textFormat == "Percent" or data.textFormat == "Percent%" then
+            textFormat = "[percent]" .. (data.textFormat == "Percent%" and "%" or "")
+        elseif data.textFormat == nil or data.textFormat == "Current" then
+            textFormat = "[current]"
+        elseif data.textFormat == "Current / Maximum" then
+            textFormat = "[current] / [max]"
+        elseif data.textFormat == "Current - Percent" or data.textFormat == "Current - Percent%" then
+            textFormat = "[current] - [percent]" .. (data.textFormat == "Current - Percent%" and "%" or "")
         end
-    end
-    local format, num = textFormat:gsub('%%', '%%%%'):gsub('%[..-%]+', '%%s')
 
-    self.TextValue:SetFormattedText(format, unpack(valuesToDisplay, 1, num))
+        -- Thanks oUF
+        local valuesToDisplay = {}
+        for tag in textFormat:gmatch('%[..-%]+') do
+            if tagValues and tagValues[tag] then
+                table.insert(valuesToDisplay, tagValues[tag]())
+            else
+                table.insert(valuesToDisplay, '')
+            end
+        end
+        local format, num = textFormat:gsub('%%', '%%%%'):gsub('%[..-%]+', '%%s')
+
+        self.TextValue:SetFormattedText(format, unpack(valuesToDisplay, 1, num))
+    end
 
     if addonTable.fragmentedPowerTypes[resource] then
         self:UpdateFragmentedPowerDisplay(layoutName)

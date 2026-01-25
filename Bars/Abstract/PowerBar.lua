@@ -60,8 +60,10 @@ function PowerBarMixin:GetTagValues(resource, max, current, precision)
         ["[percent]"] = function()
             if issecretvalue(max) or issecretvalue(current) then
                 return string.format(pFormat, UnitPowerPercent("player", resource, true, CurveConstants.ScaleTo100))
-            else
+            elseif max ~= 0 then
                 return string.format(pFormat, (current / max) * 100)
+            else
+                return ''
             end
         end,
         ["[max]"] = function() return string.format("%s", AbbreviateNumbers(max)) end,

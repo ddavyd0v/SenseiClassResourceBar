@@ -137,7 +137,7 @@ end
 function SecondaryResourceBarMixin:GetTagValues(resource, max, current, precision)
     local pFormat = "%." .. (precision or 0) .. "f"
 
-    local tagValues = addonTable.PowerBarMixin:GetTagValues(resource, max, current, precision)
+    local tagValues = addonTable.PowerBarMixin.GetTagValues(self, resource, max, current, precision)
 
     if resource == "STAGGER" then
         tagValues["[percent]"] = function() return string.format(pFormat, self._lastStaggerPercent) end

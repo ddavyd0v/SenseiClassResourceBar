@@ -64,7 +64,7 @@ function TertiaryResourceBarMixin:GetResourceValue(resource)
 end
 
 function TertiaryResourceBarMixin:GetTagValues(resource, max, current, precision)
-    local tagValues = addonTable.PowerBarMixin:GetTagValues(resource, max, current, precision)
+    local tagValues = addonTable.PowerBarMixin.GetTagValues(self, resource, max, current, precision)
 
     if resource == "EBON_MIGHT" then
         tagValues["[current]"] = function() return string.format("%.1f", AbbreviateNumbers(current)) end
