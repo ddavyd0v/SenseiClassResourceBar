@@ -304,6 +304,7 @@ addonTable.tickedPowerTypes = {
     [Enum.PowerType.Runes] = true,
     [Enum.PowerType.SoulShards] = true,
     ["MAELSTROM_WEAPON"] = true,
+    ["TIP_OF_THE_SPEAR"] = true,
 }
 
 -- Power types that are fragmented (multiple independent segments)

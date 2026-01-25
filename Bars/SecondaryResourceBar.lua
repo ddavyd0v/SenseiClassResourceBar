@@ -5,6 +5,20 @@ local L = addonTable.L
 
 local SecondaryResourceBarMixin = Mixin({}, addonTable.PowerBarMixin)
 
+function SecondaryResourceBarMixin:OnLoad()
+    addonTable.PowerBarMixin.OnLoad(self)
+
+    -- Modules for the special cases requiring more work
+    addonTable.TipOfTheSpear:OnLoad(self)
+end
+
+function SecondaryResourceBarMixin:OnEvent(event, ...)
+    addonTable.PowerBarMixin.OnEvent(self, event, ...)
+
+    -- Modules for the special cases requiring more work
+    addonTable.TipOfTheSpear:OnEvent(self, event, ...)
+end
+
 function SecondaryResourceBarMixin:GetResource()
     local playerClass = select(2, UnitClass("player"))
     local secondaryResources = {
@@ -21,7 +35,9 @@ function SecondaryResourceBarMixin:GetResource()
             [DRUID_MOONKIN_FORM_2]  = Enum.PowerType.Mana,
         },
         ["EVOKER"]      = Enum.PowerType.Essence,
-        ["HUNTER"]      = nil,
+        ["HUNTER"]      = {
+            [255] = "TIP_OF_THE_SPEAR", -- Survival
+        },
         ["MAGE"]        = {
             [62]   = Enum.PowerType.ArcaneCharges, -- Arcane
         },
@@ -124,6 +140,10 @@ function SecondaryResourceBarMixin:GetResourceValue(resource)
         local max = 10
 
         return max / 2, current
+    end
+
+    if resource == "TIP_OF_THE_SPEAR" then
+        return addonTable.TipOfTheSpear:GetStacks()
     end
 
     -- Regular secondary resource types

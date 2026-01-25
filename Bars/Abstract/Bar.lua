@@ -837,7 +837,14 @@ function BarMixin:UpdateTicksLayout(layoutName)
     if not data then return end
 
     local resource = self:GetResource()
-    local max = resource == "MAELSTROM_WEAPON" and 5 or (type(resource) ~= "number") and 0 or UnitPowerMax("player", resource)
+    local max = 0;
+    if resource == "MAELSTROM_WEAPON" then
+        max = 5
+    elseif resource == "TIP_OF_THE_SPEAR" then
+        max = addonTable.TipOfTheSpear.TIP_MAX_STACKS
+    elseif type(resource) == "number" then
+        UnitPowerMax("player", resource)
+    end
 
     local defaults = self.defaults or {}
 
