@@ -160,8 +160,7 @@ function SecondaryResourceBarMixin:GetPoint(layoutName)
         local primaryResource = addonTable.barInstances and addonTable.barInstances["PrimaryResourceBar"]
 
         if primaryResource then
-            print(not primaryResource:IsShown())
-            -- This works because visibility settings are applied before layout, so the secondary can know whether the primary is shown or not
+            primaryResource:ApplyVisibilitySettings(layoutName)
             if not primaryResource:IsShown() then
                 return primaryResource:GetPoint(layoutName)
             end
