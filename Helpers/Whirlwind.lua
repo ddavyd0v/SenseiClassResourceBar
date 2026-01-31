@@ -133,7 +133,6 @@ function Whirlwind:GetStacks()
         iwExpiresAt = nil
     end
 
-    print(C_SpellBook.IsSpellKnown(REQUIRED_TALENT_ID) and self.IW_MAX_STACKS or nil)
     return C_SpellBook.IsSpellKnown(REQUIRED_TALENT_ID) and self.IW_MAX_STACKS or nil, iwStacks
 end
 
