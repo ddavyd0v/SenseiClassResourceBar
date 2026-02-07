@@ -605,17 +605,20 @@ function BarMixin:ApplyLayout(layoutName, force)
 
     local defaults = self.defaults or {}
 
-    local width, height = self:GetSize(layoutName, data)
-    self.Frame:SetSize(max(LEM:IsInEditMode() and 2 or 1, width), max(LEM:IsInEditMode() and 2 or 1, height))
+    -- Cannot touch Protected Frame in Combat
+    if not self.Frame:IsProtected() or (self.Frame:IsProtected() and not InCombatLockdown()) then
+        local width, height = self:GetSize(layoutName, data)
+        self.Frame:SetSize(max(LEM:IsInEditMode() and 2 or 1, width), max(LEM:IsInEditMode() and 2 or 1, height))
 
-    local point, relativeTo, relativePoint, x, y = self:GetPoint(layoutName)
-    self.Frame:ClearAllPoints()
-    self.Frame:SetPoint(point, relativeTo, relativePoint, x, y)
+        local point, relativeTo, relativePoint, x, y = self:GetPoint(layoutName)
+        self.Frame:ClearAllPoints()
+        self.Frame:SetPoint(point, relativeTo, relativePoint, x, y)
+        -- Disable drag & drop if the relative frame is not UIParent, due to LEM limitation making x and y position incorrect when dragging
+        LEM:SetFrameDragEnabled(self.Frame, relativeTo == UIParent)
 
-    -- Disable drag & drop if the relative frame is not UIParent, due to LEM limitation making x and y position incorrect when dragging
-    LEM:SetFrameDragEnabled(self.Frame, relativeTo == UIParent)
+        self:SetFrameStrata(data.barStrata or defaults.barStrata)
+    end
 
-    self:SetFrameStrata(data.barStrata or defaults.barStrata)
     self:ApplyFontSettings(layoutName, data)
     self:ApplyFillDirectionSettings(layoutName, data)
     self:ApplyMaskAndBorderSettings(layoutName, data)
