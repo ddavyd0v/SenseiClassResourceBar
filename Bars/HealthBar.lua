@@ -467,13 +467,13 @@ addonTable.RegisteredBar.HealthBar = {
         useClassColor = true,
         enableHealthBarMouseInteraction = false,
         absorbBarEnabled = false,
-        absorbBarPosition = "Fixed",
-        absorbBarStyle = "SCRB FG Solid",
-        absorbBarColor = {r = 1, g = 1, b = 0, a = 0.25},
+        absorbBarPosition = "Attach To Health",
+        absorbBarStyle = "SCRB FG Absorb",
+        absorbBarColor = {r = 1, g = 1, b = 1, a = 1},
         healAbsorbBarEnabled = false,
-        healAbsorbBarPosition = "Reversed",
+        healAbsorbBarPosition = "Attach To Health",
         healAbsorbBarStyle = "SCRB FG Solid",
-        healAbsorbBarColor = {r = 1, g = 0, b = 0, a = 0.25},
+        healAbsorbBarColor = {r = 0, g = 0, b = 0, a = 0.5},
     },
     lemSettings = function(bar, defaults)
         local config = bar:GetConfig()
